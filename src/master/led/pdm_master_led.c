@@ -1,6 +1,8 @@
 #include "pdm.h"
+#include "pdm_master_manager.h"
 #include "pdm_master_led_priv.h"
 #include "pdm_master_led_ioctl.h"
+
 
 static struct pdm_master *led_master = NULL;
 

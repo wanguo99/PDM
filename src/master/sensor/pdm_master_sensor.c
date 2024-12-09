@@ -1,4 +1,5 @@
 #include "pdm.h"
+#include "pdm_master_manager.h"
 #include "pdm_master_sensor_priv.h"
 #include "pdm_master_sensor_ioctl.h"
 

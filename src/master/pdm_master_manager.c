@@ -1,6 +1,5 @@
 #include "pdm.h"
-#include "pdm_driver_manager.h"
-#include "pdm_master_drivers.h"
+#include "pdm_master_manager.h"
 
 /**
  * @brief PDM 主驱动程序列表

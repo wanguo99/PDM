@@ -4,9 +4,7 @@
 #include <linux/platform_device.h>
 
 #include "pdm.h"
-#include "pdm_device.h"
-#include "pdm_driver_manager.h"
-#include "pdm_device_drivers.h"
+#include "pdm_device_manager.h"
 
 /**
  * @brief PDM 主模板驱动程序列表

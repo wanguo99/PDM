@@ -5,17 +5,19 @@ obj-m := $(MODULE_NAME).o
 # 定义要编译的目标模块对象文件
 $(MODULE_NAME)-objs := 	src/core/pdm_core.o \
 						src/core/pdm_device.o \
-						src/core/pdm_master.o \
-						src/core/pdm_driver_manager.o \
-						src/core/pdm_device_drivers.o \
-						src/core/pdm_master_drivers.o 
-# pdm_device_drivers
+						src/core/pdm_master.o
+# pdm device drivers
+$(MODULE_NAME)-objs +=	src/device/pdm_device_manager.o
+
 $(MODULE_NAME)-objs += 	src/device/pdm_device_i2c.o \
 						src/device/pdm_device_platform.o \
 						src/device/pdm_device_spi.o
 
+# pdm master drivers
+$(MODULE_NAME)-objs +=	src/master/pdm_master_manager.o 
+
 # pdm_master_template
-$(MODULE_NAME)-objs += src/master/template/pdm_master_template.o 
+$(MODULE_NAME)-objs +=	src/master/template/pdm_master_template.o 
 
 # pdm_master_led
 $(MODULE_NAME)-objs +=	src/master/led/pdm_master_led.o \
@@ -28,9 +30,9 @@ $(MODULE_NAME)-objs +=	src/master/sensor/pdm_master_sensor.o \
 
 # 添加头文件路径
 ccflags-y += 	-I$(src)/include \
-				-I$(src)/include/osa \
 				-I$(src)/include/core \
-				-I$(src)/include/master \
+				-I$(src)/include/driver \
+				-I$(src)/include/osa \
 				-I$(src)/include/uapi
 
 
