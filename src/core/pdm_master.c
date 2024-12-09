@@ -168,66 +168,9 @@ static void pdm_master_client_id_free(struct pdm_master *master, struct pdm_devi
     mutex_unlock(&master->idr_mutex_lock);
 }
 
-/**
- * @brief 向PDM主控制器添加设备
- *
- * 该函数用于向PDM主控制器添加一个新的PDM设备。
- *
- * @param master PDM主控制器
- * @param pdmdev 要添加的PDM设备
- * @return 成功返回 0，参数无效返回 -EINVAL
- */
-int pdm_master_client_add(struct pdm_master *master, struct pdm_device *pdmdev)
-{
-    int status;
-
-    if (!master || !pdmdev) {
-        OSA_ERROR("Invalid input parameters (master: %p, pdmdev: %p).\n", master, pdmdev);
-        return -EINVAL;
-    }
-
-    pdmdev->master = pdm_master_get(master);
-
-    status = pdm_master_client_id_alloc(master, pdmdev);
-    if (status) {
-        OSA_ERROR("Alloc id for client failed: %d\n", status);
-        return status;
-    }
-
-    snprintf(pdmdev->name, PDM_DEVICE_NAME_SIZE, "pdm_%s_client.%d", master->name, pdmdev->client_index);
-
-    mutex_lock(&master->client_list_mutex_lock);
-    list_add_tail(&pdmdev->entry, &master->client_list);
-    mutex_unlock(&master->client_list_mutex_lock);
-
-    return 0;
-}
-
-/**
- * @brief 从PDM主控制器删除设备
- *
- * 该函数用于从PDM主控制器中删除一个PDM设备。
- *
- * @param master PDM主控制器
- * @param pdmdev 要删除的PDM设备
- * @return 成功返回 0，参数无效返回 -EINVAL
- */
-int pdm_master_client_delete(struct pdm_master *master, struct pdm_device *pdmdev)
-{
-    if (!master || !pdmdev) {
-        OSA_ERROR("Invalid input parameters (master: %p, pdmdev: %p).\n", master, pdmdev);
-        return -EINVAL;
-    }
-
-    mutex_lock(&master->client_list_mutex_lock);
-    list_del(&pdmdev->entry);
-    mutex_unlock(&master->client_list_mutex_lock);
-    pdm_master_client_id_free(master, pdmdev);
-    pdm_master_put(master);
-
-    OSA_DEBUG("Device %s removed from %s master.\n", dev_name(&pdmdev->dev), master->name);
-    return 0;
-}
+static struct class pdm_client_class = {
+    .name = "pdm_client",
+};
 
 /**
  * @brief 默认打开函数
@@ -351,6 +294,157 @@ static long pdm_master_fops_default_compat_ioctl(struct file *filp, unsigned int
 
     return filp->f_op->unlocked_ioctl(filp, cmd, arg);
 }
+
+/**
+ * @brief 添加PDM主控制器字符设备
+ *
+ * 该函数用于注册PDM主控制器字符设备。
+ *
+ * @param master PDM主控制器
+ * @return 成功返回 0，失败返回负错误码
+ */
+static int pdm_master_client_device_register(struct pdm_master *master, struct pdm_device *pdmdev)
+{
+    int status;
+
+    if (!master || !pdmdev) {
+        OSA_ERROR("Invalid input parameter.\n");
+        return -EINVAL;
+    }
+
+    memset(pdmdev->name, 0, PDM_DEVICE_NAME_SIZE);
+    snprintf(pdmdev->name, PDM_DEVICE_NAME_SIZE, "pdm_%s.%d", master->name, pdmdev->client_index);
+    status = alloc_chrdev_region(&pdmdev->devno, 0, 1, pdmdev->name);
+    if (status < 0) {
+        OSA_ERROR("Failed to allocate char device region for %s, error: %d.\n", pdmdev->name, status);
+        goto err_out;
+    }
+
+    pdmdev->fops.open = pdm_master_fops_default_open;
+    pdmdev->fops.release = pdm_master_fops_default_release;
+    pdmdev->fops.read = pdm_master_fops_default_read;
+    pdmdev->fops.write = pdm_master_fops_default_write;
+    pdmdev->fops.unlocked_ioctl = pdm_master_fops_default_unlocked_ioctl;
+    pdmdev->fops.compat_ioctl =  pdm_master_fops_default_compat_ioctl;
+
+    cdev_init(&pdmdev->cdev, &pdmdev->fops);
+    pdmdev->cdev.owner = THIS_MODULE;
+
+    status = cdev_add(&pdmdev->cdev, pdmdev->devno, 1);
+    if (status < 0) {
+        OSA_ERROR("Failed to add char device for %s, error: %d.\n", pdmdev->name, status);
+        goto err_unregister_chrdev;
+    }
+
+    device_create(&pdm_client_class, NULL, pdmdev->devno, NULL, pdmdev->name);
+
+    OSA_DEBUG("PDM Client %s Device Registered.\n", pdmdev->name);
+
+    return 0;
+
+err_unregister_chrdev:
+    unregister_chrdev_region(pdmdev->devno, 1);
+err_out:
+    return status;
+}
+
+/**
+ * @brief 删除PDM主控制器字符设备
+ *
+ * 该函数用于注销PDM主控制器字符设备。
+ *
+ * @param master PDM主控制器
+ */
+static void pdm_master_client_device_unregister(struct pdm_device *pdmdev)
+{
+    if (!pdmdev) {
+        OSA_ERROR("Invalid input parameter.\n");
+    }
+
+    device_destroy(&pdm_client_class, pdmdev->devno);
+    cdev_del(&pdmdev->cdev);
+
+    if (pdmdev->devno != 0) {
+        unregister_chrdev_region(pdmdev->devno, 1);
+        pdmdev->devno = 0;
+    }
+
+    OSA_DEBUG("PDM Client Device Unregistered.\n");
+}
+
+
+/**
+ * @brief 向PDM主控制器添加设备
+ *
+ * 该函数用于向PDM主控制器添加一个新的PDM设备。
+ *
+ * @param master PDM主控制器
+ * @param pdmdev 要添加的PDM设备
+ * @return 成功返回 0，参数无效返回 -EINVAL
+ */
+int pdm_master_client_add(struct pdm_master *master, struct pdm_device *pdmdev)
+{
+    int status;
+
+    if (!master || !pdmdev) {
+        OSA_ERROR("Invalid input parameters (master: %p, pdmdev: %p).\n", master, pdmdev);
+        return -EINVAL;
+    }
+
+    pdmdev->master = pdm_master_get(master);
+
+    status = pdm_master_client_id_alloc(master, pdmdev);
+    if (status) {
+        OSA_ERROR("Alloc id for client failed: %d\n", status);
+        return status;
+    }
+
+    status = pdm_master_client_device_register(master, pdmdev);
+    if (status) {
+        OSA_ERROR("Register device for client %s failed: %d\n", pdmdev->name, status);
+        goto err_client_id_free;
+    }
+
+    mutex_lock(&master->client_list_mutex_lock);
+    list_add_tail(&pdmdev->entry, &master->client_list);
+    mutex_unlock(&master->client_list_mutex_lock);
+
+    return 0;
+
+err_client_id_free:
+    pdm_master_client_id_free(master, pdmdev);
+    return status;
+}
+
+/**
+ * @brief 从PDM主控制器删除设备
+ *
+ * 该函数用于从PDM主控制器中删除一个PDM设备。
+ *
+ * @param master PDM主控制器
+ * @param pdmdev 要删除的PDM设备
+ * @return 成功返回 0，参数无效返回 -EINVAL
+ */
+int pdm_master_client_delete(struct pdm_master *master, struct pdm_device *pdmdev)
+{
+    if (!master || !pdmdev) {
+        OSA_ERROR("Invalid input parameters (master: %p, pdmdev: %p).\n", master, pdmdev);
+        return -EINVAL;
+    }
+
+    mutex_lock(&master->client_list_mutex_lock);
+    list_del(&pdmdev->entry);
+    mutex_unlock(&master->client_list_mutex_lock);
+
+    pdm_master_client_device_unregister(pdmdev);
+    pdm_master_client_id_free(master, pdmdev);
+
+    pdm_master_put(master);
+
+    OSA_DEBUG("Device %s removed from %s master.\n", dev_name(&pdmdev->dev), master->name);
+    return 0;
+}
+
 
 /**
  * @brief 显示设备名称
