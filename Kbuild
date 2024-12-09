@@ -3,35 +3,32 @@ MODULE_NAME := pdm
 obj-m := $(MODULE_NAME).o
 
 # 定义要编译的目标模块对象文件
-$(MODULE_NAME)-objs := 	src/core/pdm_core.o \
+$(MODULE_NAME)-objs := 	src/core/pdm.o \
 						src/core/pdm_device.o \
-						src/core/pdm_master.o
-# pdm device drivers
-$(MODULE_NAME)-objs +=	src/device/pdm_device_manager.o
+						src/core/pdm_device_manager.o \
+						src/core/pdm_master.o \
+						src/core/pdm_master_manager.o
 
+# pdm device drivers
 $(MODULE_NAME)-objs += 	src/device/pdm_device_i2c.o \
 						src/device/pdm_device_platform.o \
 						src/device/pdm_device_spi.o
 
-# pdm master drivers
-$(MODULE_NAME)-objs +=	src/master/pdm_master_manager.o 
+# pdm_template
+$(MODULE_NAME)-objs +=	src/driver/template/pdm_template_master.o 
 
-# pdm_master_template
-$(MODULE_NAME)-objs +=	src/master/template/pdm_master_template.o 
-
-# pdm_master_led
-$(MODULE_NAME)-objs +=	src/master/led/pdm_master_led.o \
-						src/master/led/pdm_master_led_gpio.o \
-						src/master/led/pdm_master_led_pwm.o
-# pdm_master_sensor
-$(MODULE_NAME)-objs +=	src/master/sensor/pdm_master_sensor.o \
-						src/master/sensor/pdm_master_sensor_adc.o \
-						src/master/sensor/pdm_master_sensor_i2c.o
+# pdm_led
+$(MODULE_NAME)-objs +=	src/driver/led/pdm_led_master.o \
+						src/driver/led/pdm_led_gpio.o \
+						src/driver/led/pdm_led_pwm.o
+# pdm_sensor
+$(MODULE_NAME)-objs +=	src/driver/sensor/pdm_sensor_master.o \
+						src/driver/sensor/pdm_sensor_adc.o \
+						src/driver/sensor/pdm_sensor_i2c.o
 
 # 添加头文件路径
 ccflags-y += 	-I$(src)/include \
 				-I$(src)/include/core \
-				-I$(src)/include/driver \
 				-I$(src)/include/osa \
 				-I$(src)/include/uapi
 

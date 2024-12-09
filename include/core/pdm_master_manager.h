@@ -1,5 +1,5 @@
-#ifndef _PDM_MASTER_DRIVERS_H_
-#define _PDM_MASTER_DRIVERS_H_
+#ifndef _PDM_MASTER_MANAGER_H_
+#define _PDM_MASTER_MANAGER_H_
 
 /**
  * @brief 初始化 PDM 主控制器驱动
@@ -69,4 +69,4 @@ int pdm_master_template_driver_init(void);
  */
 void pdm_master_template_driver_exit(void);
 
-#endif /* _PDM_MASTER_DRIVERS_H_ */
+#endif /* _PDM_MASTER_MANAGER_H_ */
