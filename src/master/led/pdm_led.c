@@ -12,7 +12,7 @@ static struct pdm_master *led_master = NULL;
  * @param index 设备索引
  * @return 找到的 PDM 设备指针，未找到返回 NULL
  */
-static struct pdm_device *pdm_master_led_find_pdmdev(int index)
+static struct pdm_device *pdm_led_find_pdmdev(int index)
 {
     struct pdm_device *pdmdev;
     int found_dev = 0;
@@ -39,7 +39,7 @@ static struct pdm_device *pdm_master_led_find_pdmdev(int index)
  * @param args 包含设备索引和状态的结构体
  * @return 成功返回 0，失败返回负错误码
  */
-static int pdm_master_led_set_state(struct pdm_master_led_ioctl_args *args)
+static int pdm_led_set_state(struct pdm_led_ioctl_args *args)
 {
     struct pdm_device_led_priv *led_priv;
     struct pdm_device *pdmdev;
@@ -47,7 +47,7 @@ static int pdm_master_led_set_state(struct pdm_master_led_ioctl_args *args)
 
     mutex_lock(&led_master->client_list_mutex_lock);
 
-    pdmdev = pdm_master_led_find_pdmdev(args->index);
+    pdmdev = pdm_led_find_pdmdev(args->index);
     if (!pdmdev) {
         status = -EINVAL;
         goto err_unlock;
@@ -83,22 +83,22 @@ err_unlock:
  * @param arg 命令参数
  * @return 成功返回 0，失败返回负错误码
  */
-static long pdm_master_led_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+static long pdm_led_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
-    struct pdm_master_led_ioctl_args args;
+    struct pdm_led_ioctl_args args;
     int status;
 
     OSA_DEBUG("ioctl, cmd=0x%02x, arg=0x%02lx\n", cmd, arg);
 
-    memset(&args, 0, sizeof(struct pdm_master_led_ioctl_args));
+    memset(&args, 0, sizeof(struct pdm_led_ioctl_args));
     switch (cmd) {
         case PDM_MASTER_LED_SET_STATE: {
-            if (copy_from_user(&args, (struct pdm_master_led_ioctl_args __user *)arg,
-                                        sizeof(struct pdm_master_led_ioctl_args))) {
+            if (copy_from_user(&args, (struct pdm_led_ioctl_args __user *)arg,
+                                        sizeof(struct pdm_led_ioctl_args))) {
                 return -EFAULT;
             }
             printk(KERN_INFO "PDM_MASTER_LED set: index %d, state %d\n", args.index, args.state);
-            status = pdm_master_led_set_state(&args);
+            status = pdm_led_set_state(&args);
             break;
         }
         default:
@@ -106,7 +106,7 @@ static long pdm_master_led_ioctl(struct file *file, unsigned int cmd, unsigned l
     }
 
     if (status) {
-        OSA_ERROR("pdm_master_led_ioctl error\n");
+        OSA_ERROR("pdm_led_ioctl error\n");
     }
 
     return status;
@@ -123,13 +123,13 @@ static long pdm_master_led_ioctl(struct file *file, unsigned int cmd, unsigned l
  * @param ppos 文件偏移量
  * @return 写入的字节数，或负错误码
  */
-static ssize_t pdm_master_led_write(struct file *filp, const char __user *buf, size_t count, loff_t *ppos)
+static ssize_t pdm_led_write(struct file *filp, const char __user *buf, size_t count, loff_t *ppos)
 {
-    struct pdm_master_led_ioctl_args args;
+    struct pdm_led_ioctl_args args;
     char kernel_buf[5];
     ssize_t bytes_read;
 
-    OSA_INFO("Called pdm_master_led_write\n");
+    OSA_INFO("Called pdm_led_write\n");
 
     if (count > sizeof(kernel_buf) - 1) {
         count = sizeof(kernel_buf) - 1;
@@ -145,8 +145,8 @@ static ssize_t pdm_master_led_write(struct file *filp, const char __user *buf, s
         return -EINVAL;
     }
 
-    if (pdm_master_led_set_state(&args)) {
-        OSA_ERROR("pdm_master_led_set_state failed\n");
+    if (pdm_led_set_state(&args)) {
+        OSA_ERROR("pdm_led_set_state failed\n");
     }
 
     return count;
@@ -160,7 +160,7 @@ static ssize_t pdm_master_led_write(struct file *filp, const char __user *buf, s
  * @param pdmdev PDM 设备指针
  * @return 成功返回 0，失败返回负错误码
  */
-static int pdm_master_led_device_probe(struct pdm_device *pdmdev)
+static int pdm_led_device_probe(struct pdm_device *pdmdev)
 {
     int status;
 
@@ -179,12 +179,12 @@ static int pdm_master_led_device_probe(struct pdm_device *pdmdev)
     switch (pdmdev->physical_info.type) {
         case PDM_DEVICE_INTERFACE_TYPE_GPIO: {
             OSA_DEBUG("pdmdev->physical_info.type: %d\n", pdmdev->physical_info.type);
-            status = pdm_master_led_gpio_setup(pdmdev);
+            status = pdm_led_gpio_setup(pdmdev);
             break;
         }
         case PDM_DEVICE_INTERFACE_TYPE_PWM: {
             OSA_DEBUG("pdmdev->physical_info.type: %d\n", pdmdev->physical_info.type);
-            status = pdm_master_led_pwm_setup(pdmdev);
+            status = pdm_led_pwm_setup(pdmdev);
             break;
         }
         default: {
@@ -218,7 +218,7 @@ err_client_del:
  *
  * @param pdmdev PDM 设备指针
  */
-static void pdm_master_led_device_remove(struct pdm_device *pdmdev)
+static void pdm_led_device_remove(struct pdm_device *pdmdev)
 {
     int status;
 
@@ -238,24 +238,24 @@ static void pdm_master_led_device_remove(struct pdm_device *pdmdev)
  *
  * 该表定义了支持的设备树兼容属性。
  */
-static const struct of_device_id of_pdm_master_led_match[] = {
+static const struct of_device_id of_pdm_led_match[] = {
     { .compatible = "led,pdm-device-pwm", },
     { .compatible = "led,pdm-device-gpio", },
     {},
 };
-MODULE_DEVICE_TABLE(of, of_pdm_master_led_match);
+MODULE_DEVICE_TABLE(of, of_pdm_led_match);
 
 /**
  * @brief LED PDM 驱动结构体
  *
  * 该结构体定义了 LED PDM 驱动的基本信息和操作函数。
  */
-static struct pdm_driver pdm_master_led_driver = {
-    .probe = pdm_master_led_device_probe,
-    .remove = pdm_master_led_device_remove,
+static struct pdm_driver pdm_led_driver = {
+    .probe = pdm_led_device_probe,
+    .remove = pdm_led_device_remove,
     .driver = {
         .name = "pdm-master-led",
-        .of_match_table = of_pdm_master_led_match,
+        .of_match_table = of_pdm_led_match,
     },
 };
 
@@ -266,31 +266,30 @@ static struct pdm_driver pdm_master_led_driver = {
  *
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_master_led_driver_init(void)
+int pdm_led_driver_init(void)
 {
     int status;
 
-    led_master = pdm_master_alloc(sizeof(struct pdm_master_led_priv));
+    led_master = pdm_master_alloc(sizeof(struct pdm_led_priv));
     if (!led_master) {
         OSA_ERROR("Failed to allocate pdm_master\n");
         return -ENOMEM;
     }
 
-    strncpy(led_master->name, PDM_MASTER_LED_NAME, strlen(PDM_MASTER_LED_NAME));
-    status = pdm_master_register(led_master);
+    status = pdm_master_register(led_master, PDM_MASTER_LED_NAME);
     if (status) {
         OSA_ERROR("Failed to register LED PDM Master, status=%d\n", status);
         goto err_master_free;
     }
 
-    status = pdm_bus_register_driver(THIS_MODULE, &pdm_master_led_driver);
+    status = pdm_bus_register_driver(THIS_MODULE, &pdm_led_driver);
     if (status) {
         OSA_ERROR("Failed to register LED PDM Master Driver, status=%d\n", status);
         goto err_master_unregister;
     }
 
-    led_master->fops.unlocked_ioctl = pdm_master_led_ioctl;
-    led_master->fops.write = pdm_master_led_write;
+    led_master->fops.unlocked_ioctl = pdm_led_ioctl;
+    led_master->fops.write = pdm_led_write;
 
     OSA_INFO("LED PDM Master Driver Initialized\n");
     return 0;
@@ -307,9 +306,9 @@ err_master_free:
  *
  * 该函数用于退出 LED PDM 主设备驱动，注销驱动和主设备，释放相关资源。
  */
-void pdm_master_led_driver_exit(void)
+void pdm_led_driver_exit(void)
 {
-    pdm_bus_unregister_driver(&pdm_master_led_driver);
+    pdm_bus_unregister_driver(&pdm_led_driver);
     pdm_master_unregister(led_master);
     pdm_master_free(led_master);
     OSA_INFO("LED PDM Master Driver Exited\n");

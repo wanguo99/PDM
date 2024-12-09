@@ -545,7 +545,7 @@ void pdm_master_free(struct pdm_master *master)
  *         -EEXIST - 主控制器名称已存在
  *         其他负值 - 其他错误码
  */
-int pdm_master_register(struct pdm_master *master)
+int pdm_master_register(struct pdm_master *master, const char* name)
 {
     struct pdm_master *existing_master;
     int status;
@@ -555,6 +555,7 @@ int pdm_master_register(struct pdm_master *master)
         return -EINVAL;
     }
 
+    strncpy(master->name, name, strlen(name));
     mutex_lock(&pdm_master_device_list_mutex_lock);
     list_for_each_entry(existing_master, &pdm_master_device_list, entry) {
         if (!strcmp(existing_master->name, master->name)) {

@@ -10,7 +10,7 @@
  * @param state LED 状态（0 表示关，1 表示开）
  * @return 成功返回 0，失败返回负错误码
  */
-static int pdm_master_led_pwm_set_state(struct pdm_device *pdmdev, int state)
+static int pdm_led_pwm_set_state(struct pdm_device *pdmdev, int state)
 {
     struct pdm_device_led_priv *data = (struct pdm_device_led_priv *)pdm_device_devdata_get(pdmdev);
     if (!data) {
@@ -33,7 +33,7 @@ static int pdm_master_led_pwm_set_state(struct pdm_device *pdmdev, int state)
  * 该结构体定义了 PDM LED 设备的操作函数，包括设置状态。
  */
 static struct pdm_device_led_operations pdm_device_led_ops_pwm = {
-    .set_state = pdm_master_led_pwm_set_state,
+    .set_state = pdm_led_pwm_set_state,
 };
 
 /**
@@ -44,11 +44,11 @@ static struct pdm_device_led_operations pdm_device_led_ops_pwm = {
  * @param pdmdev PDM 设备指针
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_master_led_pwm_setup(struct pdm_device *pdmdev)
+int pdm_led_pwm_setup(struct pdm_device *pdmdev)
 {
     struct pdm_device_led_priv *data;
 
-    OSA_INFO("pdm_master_led_pwm_setup for device: %s\n", pdmdev->name);
+    OSA_INFO("pdm_led_pwm_setup for device: %s\n", pdmdev->name);
 
     // 获取设备私有数据
     data = (struct pdm_device_led_priv *)pdm_device_devdata_get(pdmdev);

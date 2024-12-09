@@ -100,7 +100,7 @@ void pdm_master_free(struct pdm_master *master);
  * @param master PDM 主控制器结构体指针
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_master_register(struct pdm_master *master);
+int pdm_master_register(struct pdm_master *master, const char* name);
 
 /**
  * @brief 注销 PDM 主控制器
