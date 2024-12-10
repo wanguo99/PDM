@@ -14,7 +14,7 @@ struct pdm_led_ioctl_args {
     int state;
 };
 
-#define PDM_MASTER_LED_SET_STATE		_IOW(PDM_LED_IOC_MAGIC, 0, struct pdm_led_ioctl_args *)
+#define PDM_ADAPTER_LED_SET_STATE		_IOW(PDM_LED_IOC_MAGIC, 0, struct pdm_led_ioctl_args *)
 
 
 #endif /* _PDM_LED_IOCTL_H_ */

@@ -67,7 +67,7 @@ struct pdm_device {
     dev_t devno;                         /**< 设备号 */
     struct cdev cdev;                    /**< 字符设备结构体 */
     struct file_operations fops;         /**< 文件操作结构体，每个PDM设备内部单独实现一套文件操作 */
-    struct pdm_master *master;                  /**< 指向所属的 PDM 主控制器 */
+    struct pdm_adapter *adapter;                  /**< 指向所属的 PDM 主控制器 */
     struct list_head entry;                     /**< 设备链表节点 */
     struct pdm_device_physical_info physical_info; /**< 物理设备信息 */
 };
@@ -196,5 +196,21 @@ int pdm_device_init(void);
  * 该函数用于卸载 PDM 设备模块。
  */
 void pdm_device_exit(void);
+
+/**
+ * @brief 初始化 PDM 设备驱动
+ *
+ * 该函数用于初始化 PDM 设备驱动，包括注册设备类和设备驱动。
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
+int pdm_hw_drivers_register(void);
+
+/**
+ * @brief 卸载 PDM 设备驱动
+ *
+ * 该函数用于卸载 PDM 设备驱动，包括注销设备驱动。
+ */
+void pdm_hw_drivers_unregister(void);
 
 #endif /* _PDM_DEVICE_H_ */

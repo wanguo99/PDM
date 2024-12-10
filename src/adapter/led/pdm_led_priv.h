@@ -1,5 +1,5 @@
-#ifndef _PDM_MASTER_LED_PRIV_H_
-#define _PDM_MASTER_LED_PRIV_H_
+#ifndef _PDM_ADAPTER_LED_PRIV_H_
+#define _PDM_ADAPTER_LED_PRIV_H_
 
 /**
  * @file pdm_led.h
@@ -8,7 +8,7 @@
  * 本文件定义了 PDM LED 驱动的结构体和相关函数，用于管理和操作 PDM LED 设备。
  */
 
-#define PDM_MASTER_LED_NAME        "led"      /* 控制器名字 */
+#define PDM_ADAPTER_LED_NAME        "led"      /* 控制器名字 */
 
 /**
  * @struct pdm_device_led_operations
@@ -21,13 +21,13 @@ struct pdm_device_led_operations {
 };
 
 /**
- * @struct pdm_master_led_priv
+ * @struct pdm_adapter_led_priv
  * @brief PDM LED 主设备私有数据结构体
  *
  * 该结构体用于存储 PDM LED 主设备的私有数据。
  */
 struct pdm_led_priv {
-    // 可以根据需要添加 master 的私有数据
+    // 可以根据需要添加 adapter 的私有数据
 };
 
 /**
@@ -43,4 +43,4 @@ struct pdm_device_led_priv {
 int pdm_led_gpio_setup(struct pdm_device *pdmdev);
 int pdm_led_pwm_setup(struct pdm_device *pdmdev);
 
-#endif /* _PDM_MASTER_LED_PRIV_H_ */
+#endif /* _PDM_ADAPTER_LED_PRIV_H_ */

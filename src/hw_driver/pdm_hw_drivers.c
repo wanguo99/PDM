@@ -4,7 +4,8 @@
 #include <linux/platform_device.h>
 
 #include "pdm.h"
-#include "pdm_device_manager.h"
+#include "pdm_subdriver.h"
+#include "pdm_hw_driver_priv.h"
 
 /**
  * @brief PDM 主模板驱动程序列表
@@ -52,7 +53,7 @@ static struct pdm_subdriver pdm_device_drivers[] = {
  *
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_device_drivers_register(void)
+int pdm_hw_drivers_register(void)
 {
     struct pdm_subdriver_register_params params;
     int status;
@@ -81,7 +82,7 @@ int pdm_device_drivers_register(void)
  *
  * @note 在调用此函数之前，请确保所有相关的设备已经注销。
  */
-void pdm_device_drivers_unregister(void)
+void pdm_hw_drivers_unregister(void)
 {
     pdm_subdriver_unregister(&pdm_device_driver_list);
     OSA_DEBUG("PDM Device Drivers Exited.\n");

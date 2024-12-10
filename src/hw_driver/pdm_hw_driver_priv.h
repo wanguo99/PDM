@@ -1,21 +1,5 @@
-#ifndef _PDM_DEVICE_MANAGER_H_
-#define _PDM_DEVICE_MANAGER_H_
-
-/**
- * @brief 初始化 PDM 设备驱动
- *
- * 该函数用于初始化 PDM 设备驱动，包括注册设备类和设备驱动。
- *
- * @return 成功返回 0，失败返回负错误码
- */
-int pdm_device_drivers_register(void);
-
-/**
- * @brief 卸载 PDM 设备驱动
- *
- * 该函数用于卸载 PDM 设备驱动，包括注销设备驱动。
- */
-void pdm_device_drivers_unregister(void);
+#ifndef _PDM_HW_DRIVER_PRIV_H_
+#define _PDM_HW_DRIVER_PRIV_H_
 
 /**
  * @brief 初始化 I2C 驱动
@@ -65,4 +49,4 @@ int pdm_device_spi_driver_init(void);
  */
 void pdm_device_spi_driver_exit(void);
 
-#endif /* _PDM_DEVICE_MANAGER_H_ */
+#endif /* _PDM_HW_DRIVER_PRIV_H_ */

@@ -1,7 +1,7 @@
 #include <linux/platform_device.h>
 
 #include "pdm.h"
-#include "pdm_device_manager.h"
+#include "pdm_hw_driver_priv.h"
 
 /**
  * @brief PLATFORM 设备平台数据结构体

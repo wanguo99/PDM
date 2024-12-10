@@ -1,7 +1,7 @@
 #include <linux/spi/spi.h>
 
 #include "pdm.h"
-#include "pdm_device_manager.h"
+#include "pdm_hw_driver_priv.h"
 
 /**
  * @brief SPI 设备探测函数

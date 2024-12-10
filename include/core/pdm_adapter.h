@@ -1,18 +1,18 @@
-#ifndef _PDM_MASTER_H_
-#define _PDM_MASTER_H_
+#ifndef _PDM_ADAPTER_H_
+#define _PDM_ADAPTER_H_
 
 /**
- * @file pdm_master.h
+ * @file pdm_adapter.h
  * @brief PDM 主控制器模块头文件
  *
  * 本文件定义了 PDM 主控制器模块的公共数据类型、结构体和函数声明。
  */
-#define PDM_MASTER_CLIENT_IDR_END          (1024)
+#define PDM_ADAPTER_CLIENT_IDR_END          (1024)
 
 /**
  * @brief PDM 主控制器结构体
  */
-struct pdm_master {
+struct pdm_adapter {
     char name[PDM_DEVICE_NAME_SIZE];     /**< 主控制器名称 */
     unsigned int init_done : 1;          /**< 初始化标志 */
     struct list_head entry;              /**< 挂载到bus的链表节点 */
@@ -31,29 +31,29 @@ struct pdm_master {
  *
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_client_show(struct pdm_master *master);
+int pdm_client_show(struct pdm_adapter *adapter);
 
 /**
  * @brief 添加 PDM 设备
  *
  * 该函数用于添加 PDM 设备。
  *
- * @param master PDM 主控制器结构体指针
+ * @param adapter PDM 主控制器结构体指针
  * @param pdmdev PDM 设备结构体指针
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_client_add(struct pdm_master *master, struct pdm_device *pdmdev);
+int pdm_client_add(struct pdm_adapter *adapter, struct pdm_device *pdmdev);
 
 /**
  * @brief 删除 PDM 设备
  *
  * 该函数用于删除 PDM 设备。
  *
- * @param master PDM 主控制器结构体指针
+ * @param adapter PDM 主控制器结构体指针
  * @param pdmdev PDM 设备结构体指针
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_client_delete(struct pdm_master *master, struct pdm_device *pdmdev);
+int pdm_client_delete(struct pdm_adapter *adapter, struct pdm_device *pdmdev);
 
 /**
  * @brief 分配 PDM 主控制器结构体
@@ -63,35 +63,35 @@ int pdm_client_delete(struct pdm_master *master, struct pdm_device *pdmdev);
  * @param size 私有数据区域的大小
  * @return 分配的 PDM 主控制器结构体指针，失败返回 NULL
  */
-struct pdm_master *pdm_master_alloc(unsigned int size);
+struct pdm_adapter *pdm_adapter_alloc(unsigned int size);
 
 /**
  * @brief 释放 PDM 主控制器结构体
  *
  * 该函数用于释放 PDM 主控制器结构体。
  *
- * @param master PDM 主控制器结构体指针
+ * @param adapter PDM 主控制器结构体指针
  */
-void pdm_master_free(struct pdm_master *master);
+void pdm_adapter_free(struct pdm_adapter *adapter);
 
 /**
  * @brief 注册 PDM 主控制器
  *
  * 该函数用于注册 PDM 主控制器。
  *
- * @param master PDM 主控制器结构体指针
+ * @param adapter PDM 主控制器结构体指针
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_master_register(struct pdm_master *master, const char* name);
+int pdm_adapter_register(struct pdm_adapter *adapter, const char* name);
 
 /**
  * @brief 注销 PDM 主控制器
  *
  * 该函数用于注销 PDM 主控制器。
  *
- * @param master PDM 主控制器结构体指针
+ * @param adapter PDM 主控制器结构体指针
  */
-void pdm_master_unregister(struct pdm_master *master);
+void pdm_adapter_unregister(struct pdm_adapter *adapter);
 
 /**
  * @brief 初始化 PDM 主控制器
@@ -100,13 +100,30 @@ void pdm_master_unregister(struct pdm_master *master);
  *
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_master_init(void);
+int pdm_adapter_init(void);
 
 /**
  * @brief 退出 PDM 主控制器
  *
  * 该函数用于退出 PDM 主控制器。
  */
-void pdm_master_exit(void);
+void pdm_adapter_exit(void);
 
-#endif /* _PDM_MASTER_H_ */
+/**
+ * @brief 初始化 PDM 主控制器驱动
+ *
+ * 该函数用于初始化所有 PDM 主控制器驱动程序。
+ *
+ * @return 0 - 成功
+ *         负值 - 失败
+ */
+int pdm_adapters_register(void);
+
+/**
+ * @brief 卸载 PDM 主控制器驱动
+ *
+ * 该函数用于卸载所有 PDM 主控制器驱动程序。
+ */
+void pdm_adapters_unregister(void);
+
+#endif /* _PDM_ADAPTER_H_ */

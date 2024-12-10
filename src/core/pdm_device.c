@@ -1,6 +1,5 @@
 #include "pdm.h"
 #include "pdm_device.h"
-#include "pdm_device_manager.h"
 
 /**
  * @brief 验证 PDM 设备的有效性
@@ -118,7 +117,7 @@ static ssize_t compatible_show(struct device *dev, struct device_attribute *da, 
 static DEVICE_ATTR_RO(compatible);
 
 /**
- * master_name_show - 显示设备所属主控制器的名称
+ * adapter_name_show - 显示设备所属主控制器的名称
  * @dev: 设备结构
  * @da: 设备属性结构
  * @buf: 输出缓冲区
@@ -126,7 +125,7 @@ static DEVICE_ATTR_RO(compatible);
  * 返回值:
  * 实际写入的字节数
  */
-static ssize_t master_name_show(struct device *dev, struct device_attribute *da, char *buf)
+static ssize_t adapter_name_show(struct device *dev, struct device_attribute *da, char *buf)
 {
     struct pdm_device *pdmdev = NULL;
 
@@ -140,11 +139,11 @@ static ssize_t master_name_show(struct device *dev, struct device_attribute *da,
         return -EINVAL;
     }
 
-    OSA_INFO("Showing master name for device %s\n", dev_name(dev));
+    OSA_INFO("Showing adapter name for device %s\n", dev_name(dev));
 
-    return sysfs_emit(buf, "%s\n", pdmdev->master->name);
+    return sysfs_emit(buf, "%s\n", pdmdev->adapter->name);
 }
-static DEVICE_ATTR_RO(master_name);
+static DEVICE_ATTR_RO(adapter_name);
 
 /**
  * @brief 定义 PDM 设备的属性数组
@@ -156,7 +155,7 @@ static DEVICE_ATTR_RO(master_name);
 static struct attribute *pdm_device_attrs[] = {
     &dev_attr_name.attr,
     &dev_attr_compatible.attr,
-    &dev_attr_master_name.attr,
+    &dev_attr_adapter_name.attr,
     NULL,
 };
 ATTRIBUTE_GROUPS(pdm_device);
@@ -381,7 +380,7 @@ err_free_id:
 /**
  * @brief 注销 PDM 设备
  *
- * 该函数用于注销 PDM 设备，包括取消设备注册、释放设备 ID 和释放 master 引用。
+ * 该函数用于注销 PDM 设备，包括取消设备注册、释放设备 ID 和释放 adapter 引用。
  *
  * @param pdmdev PDM 设备结构体指针
  */
@@ -417,7 +416,7 @@ int pdm_device_init(void)
 		return status;
 	}
 
-    status = pdm_device_drivers_register();
+    status = pdm_hw_drivers_register();
     if (status < 0) {
         OSA_ERROR("Failed to register PDM Device Drivers, error: %d.\n", status);
         device_unregister(&pdm_device_root);
@@ -438,7 +437,7 @@ int pdm_device_init(void)
  */
 void pdm_device_exit(void)
 {
-    pdm_device_drivers_unregister();
+    pdm_hw_drivers_unregister();
     device_unregister(&pdm_device_root);
     OSA_DEBUG("PDM Device Exit.\n");
 }
