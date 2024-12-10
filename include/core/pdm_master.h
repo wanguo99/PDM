@@ -14,11 +14,6 @@
  */
 struct pdm_master {
     char name[PDM_DEVICE_NAME_SIZE];     /**< 主控制器名称 */
-    struct device *dev;                  /**< 字符设备结构体 */
-    dev_t devno;                         /**< 设备号 */
-    struct cdev cdev;                    /**< 字符设备结构体 */
-    struct file_operations fops;         /**< 文件操作结构体，每个PDM设备内部单独实现一套文件操作 */
-    struct rw_semaphore rwlock;          /**< 读写锁，用于sysfs读写主控制器属性时使用 */
     unsigned int init_done : 1;          /**< 初始化标志 */
     struct list_head entry;              /**< 挂载到bus的链表节点 */
     struct list_head client_list;        /**< 子设备列表 */
@@ -36,7 +31,7 @@ struct pdm_master {
  *
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_master_client_show(struct pdm_master *master);
+int pdm_client_show(struct pdm_master *master);
 
 /**
  * @brief 添加 PDM 设备
@@ -47,7 +42,7 @@ int pdm_master_client_show(struct pdm_master *master);
  * @param pdmdev PDM 设备结构体指针
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_master_client_add(struct pdm_master *master, struct pdm_device *pdmdev);
+int pdm_client_add(struct pdm_master *master, struct pdm_device *pdmdev);
 
 /**
  * @brief 删除 PDM 设备
@@ -58,20 +53,7 @@ int pdm_master_client_add(struct pdm_master *master, struct pdm_device *pdmdev);
  * @param pdmdev PDM 设备结构体指针
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_master_client_delete(struct pdm_master *master, struct pdm_device *pdmdev);
-
-struct pdm_master *dev_to_pdm_master(struct device *dev);
-
-
-/**
- * @brief 获取 PDM 主控制器的私有数据
- *
- * 该函数用于获取 PDM 主控制器的私有数据。
- *
- * @param master PDM 主控制器结构体指针
- * @return 私有数据指针
- */
-void *pdm_master_priv_data_get(struct pdm_master *master);
+int pdm_client_delete(struct pdm_master *master, struct pdm_device *pdmdev);
 
 /**
  * @brief 分配 PDM 主控制器结构体

@@ -164,7 +164,7 @@ static int pdm_led_device_probe(struct pdm_device *pdmdev)
 {
     int status;
 
-    status = pdm_master_client_add(led_master, pdmdev);
+    status = pdm_client_add(led_master, pdmdev);
     if (status) {
         OSA_ERROR("LED Master Add Device Failed, status=%d\n", status);
         return status;
@@ -175,6 +175,9 @@ static int pdm_led_device_probe(struct pdm_device *pdmdev)
         OSA_ERROR("Alloc Device Private Data Failed, status=%d\n", status);
         goto err_client_del;
     }
+
+    pdmdev->fops.write = pdm_led_write;
+    pdmdev->fops.unlocked_ioctl = pdm_led_ioctl;
 
     switch (pdmdev->physical_info.type) {
         case PDM_DEVICE_INTERFACE_TYPE_GPIO: {
@@ -206,7 +209,7 @@ err_devdata_free:
     pdm_device_devdata_free(pdmdev);
 
 err_client_del:
-    pdm_master_client_delete(led_master, pdmdev);
+    pdm_client_delete(led_master, pdmdev);
     OSA_DEBUG("LED PDM Device Probe Failed\n");
     return status;
 }
@@ -224,7 +227,7 @@ static void pdm_led_device_remove(struct pdm_device *pdmdev)
 
     pdm_device_devdata_free(pdmdev);
 
-    status = pdm_master_client_delete(led_master, pdmdev);
+    status = pdm_client_delete(led_master, pdmdev);
     if (status) {
         OSA_ERROR("LED Master Delete Device Failed, status=%d\n", status);
         return;
@@ -287,9 +290,6 @@ int pdm_led_driver_init(void)
         OSA_ERROR("Failed to register LED PDM Master Driver, status=%d\n", status);
         goto err_master_unregister;
     }
-
-    led_master->fops.unlocked_ioctl = pdm_led_ioctl;
-    led_master->fops.write = pdm_led_write;
 
     OSA_INFO("LED PDM Master Driver Initialized\n");
     return 0;
