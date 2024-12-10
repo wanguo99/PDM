@@ -2,12 +2,12 @@
 #include "pdm_component.h"
 
 /**
- * @brief 注册一个子驱动
+ * @brief 注册一个组件
  *
- * 该函数用于注册单个 PDM 子驱动，调用其初始化函数并将其添加到子驱动链表中。
+ * 该函数用于注册单个 PDM 组件，调用其初始化函数并将其添加到组件链表中。
  *
- * @param driver 要注册的子驱动结构体指针
- * @param list 子驱动链表头指针
+ * @param driver 要注册的组件结构体指针
+ * @param list 组件链表头指针
  * @return 成功返回 0，失败返回负错误码
  */
 static int pdm_component_register_single(struct pdm_component *driver, struct list_head *list) {
@@ -30,11 +30,11 @@ static int pdm_component_register_single(struct pdm_component *driver, struct li
 }
 
 /**
- * @brief 卸载一个子驱动
+ * @brief 卸载一个组件
  *
- * 该函数用于卸载单个 PDM 子驱动，调用其退出函数并将其从子驱动链表中移除。
+ * 该函数用于卸载单个 PDM 组件，调用其退出函数并将其从组件链表中移除。
  *
- * @param driver 要卸载的子驱动结构体指针
+ * @param driver 要卸载的组件结构体指针
  */
 static void pdm_component_unregister_single(struct pdm_component *driver) {
     if (driver->status && driver->exit) {
@@ -46,9 +46,9 @@ static void pdm_component_unregister_single(struct pdm_component *driver) {
 /**
  * @brief 卸载链表中所有的驱动
  *
- * 该函数用于卸载所有已注册的 PDM 子驱动，依次调用每个子驱动的退出函数。
+ * 该函数用于卸载所有已注册的 PDM 组件，依次调用每个组件的退出函数。
  *
- * @param list 子驱动链表头指针
+ * @param list 组件链表头指针
  */
 void pdm_component_unregister(struct list_head *list) {
     struct pdm_component *driver, *tmp;
@@ -66,26 +66,26 @@ void pdm_component_unregister(struct list_head *list) {
 /**
  * @brief 注册数组中所有的驱动并保存至链表
  *
- * 该函数用于注册所有 PDM 子驱动，依次调用每个子驱动的初始化函数。
+ * 该函数用于注册所有 PDM 组件，依次调用每个组件的初始化函数。
  * 根据 `ignore_failures` 参数决定是否忽略某些驱动初始化失败的情况。
  *
- * @param params 子驱动注册参数结构体指针
+ * @param params 组件注册参数结构体指针
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_component_register(struct pdm_component_data *data) {
+int pdm_component_register(struct pdm_component_params *params) {
     int i, status = 0;
 
-    if (!data || !data->drivers || data->count <= 0 || !data->list) {
+    if (!params || !params->drivers || params->count <= 0 || !params->list) {
         OSA_ERROR("Invalid input parameters.\n");
         return -EINVAL;
     }
 
-    for (i = 0; i < data->count; i++) {
-        status = pdm_component_register_single(&data->drivers[i], data->list);
+    for (i = 0; i < params->count; i++) {
+        status = pdm_component_register_single(&params->drivers[i], params->list);
         if (status) {
             OSA_ERROR("Failed to register driver %s at index %d, status = %d.\n",
-                      data->drivers[i].name ? data->drivers[i].name : "Unknown", i, status);
-            pdm_component_unregister(data->list);
+                      params->drivers[i].name ? params->drivers[i].name : "Unknown", i, status);
+            pdm_component_unregister(params->list);
             return status;
 
         }
