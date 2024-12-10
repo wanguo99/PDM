@@ -4,7 +4,7 @@
 #include <linux/platform_device.h>
 
 #include "pdm.h"
-#include "pdm_subdriver.h"
+#include "pdm_component.h"
 #include "pdm_hw_driver_priv.h"
 
 /**
@@ -17,9 +17,9 @@ static struct list_head pdm_hw_driver_list;
 /**
  * @brief PDM 主模板驱动程序数组
  *
- * 该数组包含所有需要注册的 PDM 主模板驱动程序。每个 `pdm_subdriver` 结构体包含驱动程序的名称、初始化函数和退出函数。
+ * 该数组包含所有需要注册的 PDM 主模板驱动程序。每个 `pdm_component` 结构体包含驱动程序的名称、初始化函数和退出函数。
  */
-static struct pdm_subdriver pdm_hw_drivers[] = {
+static struct pdm_component pdm_hw_drivers[] = {
     {
         .name = "PDM Hardware Driver: SPI",
         .status = true,
@@ -55,7 +55,7 @@ static struct pdm_subdriver pdm_hw_drivers[] = {
  */
 int pdm_hw_drivers_register(void)
 {
-    struct pdm_subdriver_data data;
+    struct pdm_component_data data;
     int status;
 
     INIT_LIST_HEAD(&pdm_hw_driver_list);
@@ -63,7 +63,7 @@ int pdm_hw_drivers_register(void)
     data.drivers = pdm_hw_drivers;
     data.count = ARRAY_SIZE(pdm_hw_drivers);
     data.list = &pdm_hw_driver_list;
-    status = pdm_subdriver_register(&data);
+    status = pdm_component_register(&data);
     if (status < 0) {
         OSA_ERROR("Failed to register PDM Hardware Drivers, error: %d.\n", status);
         return status;
@@ -84,7 +84,7 @@ int pdm_hw_drivers_register(void)
  */
 void pdm_hw_drivers_unregister(void)
 {
-    pdm_subdriver_unregister(&pdm_hw_driver_list);
+    pdm_component_unregister(&pdm_hw_driver_list);
     OSA_DEBUG("PDM Hardware Drivers Exited.\n");
 }
 

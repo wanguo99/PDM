@@ -1,5 +1,5 @@
 #include "pdm.h"
-#include "pdm_subdriver.h"
+#include "pdm_component.h"
 
 /**
  * @brief 注册一个子驱动
@@ -10,7 +10,7 @@
  * @param list 子驱动链表头指针
  * @return 成功返回 0，失败返回负错误码
  */
-static int pdm_subdriver_register_single(struct pdm_subdriver *driver, struct list_head *list) {
+static int pdm_component_register_single(struct pdm_component *driver, struct list_head *list) {
     int status = 0;
 
     if (driver->status && driver->init) {
@@ -36,7 +36,7 @@ static int pdm_subdriver_register_single(struct pdm_subdriver *driver, struct li
  *
  * @param driver 要卸载的子驱动结构体指针
  */
-static void pdm_subdriver_unregister_single(struct pdm_subdriver *driver) {
+static void pdm_component_unregister_single(struct pdm_component *driver) {
     if (driver->status && driver->exit) {
         driver->exit();
     }
@@ -50,8 +50,8 @@ static void pdm_subdriver_unregister_single(struct pdm_subdriver *driver) {
  *
  * @param list 子驱动链表头指针
  */
-void pdm_subdriver_unregister(struct list_head *list) {
-    struct pdm_subdriver *driver, *tmp;
+void pdm_component_unregister(struct list_head *list) {
+    struct pdm_component *driver, *tmp;
 
     if (!list) {
         OSA_ERROR("Invalid or uninitialized list pointer.\n");
@@ -59,7 +59,7 @@ void pdm_subdriver_unregister(struct list_head *list) {
     }
 
     list_for_each_entry_safe_reverse(driver, tmp, list, list) {
-        pdm_subdriver_unregister_single(driver);
+        pdm_component_unregister_single(driver);
     }
 }
 
@@ -72,7 +72,7 @@ void pdm_subdriver_unregister(struct list_head *list) {
  * @param params 子驱动注册参数结构体指针
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_subdriver_register(struct pdm_subdriver_data *data) {
+int pdm_component_register(struct pdm_component_data *data) {
     int i, status = 0;
 
     if (!data || !data->drivers || data->count <= 0 || !data->list) {
@@ -81,11 +81,11 @@ int pdm_subdriver_register(struct pdm_subdriver_data *data) {
     }
 
     for (i = 0; i < data->count; i++) {
-        status = pdm_subdriver_register_single(&data->drivers[i], data->list);
+        status = pdm_component_register_single(&data->drivers[i], data->list);
         if (status) {
             OSA_ERROR("Failed to register driver %s at index %d, status = %d.\n",
                       data->drivers[i].name ? data->drivers[i].name : "Unknown", i, status);
-            pdm_subdriver_unregister(data->list);
+            pdm_component_unregister(data->list);
             return status;
 
         }

@@ -1,5 +1,5 @@
 #include "pdm.h"
-#include "pdm_subdriver.h"
+#include "pdm_component.h"
 #include "pdm_adapter_priv.h"
 
 /**
@@ -14,7 +14,7 @@ static struct list_head pdm_adapter_list;
  *
  * 该数组包含所有需要注册的 PDM 主驱动程序。
  */
-static struct pdm_subdriver pdm_adapters[] = {
+static struct pdm_component pdm_adapters[] = {
     {
         .name = "LED Adapter",
         .status = true,
@@ -35,13 +35,13 @@ static struct pdm_subdriver pdm_adapters[] = {
 int pdm_adapters_register(void)
 {
     int status;
-    struct pdm_subdriver_data data;
+    struct pdm_component_data data;
 
     INIT_LIST_HEAD(&pdm_adapter_list);
     data.drivers = pdm_adapters;
     data.count = ARRAY_SIZE(pdm_adapters);
     data.list = &pdm_adapter_list;
-    status = pdm_subdriver_register(&data);
+    status = pdm_component_register(&data);
     if (status < 0) {
         OSA_ERROR("Failed to register PDM Adapters, error: %d.\n", status);
         return status;
@@ -58,7 +58,7 @@ int pdm_adapters_register(void)
  */
 void pdm_adapters_unregister(void)
 {
-    pdm_subdriver_unregister(&pdm_adapter_list);
+    pdm_component_unregister(&pdm_adapter_list);
 
     OSA_DEBUG("PDM Adapters Unregistered.\n");
 }
