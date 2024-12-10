@@ -1,5 +1,4 @@
 #include "pdm.h"
-#include "pdm_device.h"
 
 /**
  * @brief 验证 PDM 设备的有效性

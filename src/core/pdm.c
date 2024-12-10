@@ -4,6 +4,16 @@
 
 #include "pdm.h"
 
+/**
+ * @brief PDM BUS 私有数据结构
+ *
+ * 该结构体保存 PDM BUS 的私有数据。
+ */
+struct pdm_bus_private_data {
+    struct idr device_idr;                     /**< 用于给子设备分配ID的 IDR */
+    struct mutex idr_mutex_lock;               /**< 保护 IDR 的互斥锁 */
+};
+
 static struct pdm_bus_private_data pdm_bus_priv_data;
 
 int device_match_of_node(struct device *dev, const void *data)
@@ -242,7 +252,7 @@ static struct proc_dir_entry *pdm_procfs_dir;
  *
  * 该函数用于在 debugfs 和 procfs 中创建 PDM 相关的目录。
  */
-static int pdm_bus_debug_fs_init(void)
+static void pdm_debug_fs_init(void)
 {
     pdm_debugfs_dir = debugfs_create_dir(PDM_DEBUG_FS_DIR_NAME, NULL);
     if (IS_ERR(pdm_debugfs_dir)) {
@@ -262,8 +272,6 @@ static int pdm_bus_debug_fs_init(void)
     } else {
         OSA_DEBUG("PDM procfs registered\n");
     }
-
-    return 0;
 }
 
 /**
@@ -271,7 +279,7 @@ static int pdm_bus_debug_fs_init(void)
  *
  * 该函数用于删除在 debugfs 和 procfs 中创建的 PDM 相关目录。
  */
-static void pdm_bus_debug_fs_exit(void)
+static void pdm_debug_fs_exit(void)
 {
     if (pdm_debugfs_dir) {
         debugfs_remove_recursive(pdm_debugfs_dir);
@@ -307,7 +315,6 @@ static int pdm_bus_init(void)
     memset(&pdm_bus_priv_data, 0, sizeof(struct pdm_bus_private_data));
     mutex_init(&pdm_bus_priv_data.idr_mutex_lock);
     idr_init(&pdm_bus_priv_data.device_idr);
-    pdm_bus_debug_fs_init();
 
     OSA_DEBUG("PDM bus initialized\n");
     return 0;
@@ -324,8 +331,6 @@ static int pdm_bus_init(void)
  */
 static void pdm_bus_exit(void)
 {
-    pdm_bus_debug_fs_exit();
-
     mutex_lock(&pdm_bus_priv_data.idr_mutex_lock);
     idr_destroy(&pdm_bus_priv_data.device_idr);
     mutex_unlock(&pdm_bus_priv_data.idr_mutex_lock);
@@ -369,6 +374,8 @@ static int __init pdm_init(void)
         goto err_device_exit;
     }
 
+    pdm_debug_fs_init();
+
     OSA_INFO("----- PDM Inited ----- \n");
     return 0;
 
@@ -388,6 +395,8 @@ err_bus_exit:
 static void __exit pdm_exit(void)
 {
     OSA_INFO("===== PDM Exit =====\n");
+
+    pdm_debug_fs_exit();
     pdm_adapter_exit();
     pdm_device_exit();
     pdm_bus_exit();

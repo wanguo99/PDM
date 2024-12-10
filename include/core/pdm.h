@@ -32,15 +32,6 @@
  */
 #define PDM_DEBUG_FS_DIR_NAME    "pdm"         /**< debugfs 和 procfs 目录名 */
 
-/**
- * @brief PDM BUS 私有数据结构
- *
- * 该结构体保存 PDM BUS 的私有数据。
- */
-struct pdm_bus_private_data {
-    struct idr device_idr;                     /**< 用于给子设备分配ID的 IDR */
-    struct mutex idr_mutex_lock;               /**< 保护 IDR 的互斥锁 */
-};
 
 /**
  * @brief PDM 设备 ID 结构体
