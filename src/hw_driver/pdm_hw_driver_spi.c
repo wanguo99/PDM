@@ -11,7 +11,7 @@
  * @param spi 指向 SPI 设备的指针
  * @return 成功返回 0，失败返回负错误码
  */
-static int pdm_device_spi_probe(struct spi_device *spi) {
+static int pdm_hw_driver_spi_probe(struct spi_device *spi) {
     struct pdm_device *pdmdev;
     int status;
 
@@ -45,7 +45,7 @@ free_pdmdev:
  *
  * @param spi 指向 SPI 设备的指针
  */
-static int pdm_device_spi_real_remove(struct spi_device *spi) {
+static int pdm_hw_driver_spi_real_remove(struct spi_device *spi) {
     struct pdm_device *pdmdev;
 
     pdmdev = pdm_bus_find_device_by_of_node(spi->dev.of_node);
@@ -72,13 +72,13 @@ static int pdm_device_spi_real_remove(struct spi_device *spi) {
  * @param spi 指向 SPI 设备的指针
  */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0)
-static int pdm_device_spi_remove(struct spi_device *spi) {
-    return pdm_device_spi_real_remove(spi);
+static int pdm_hw_driver_spi_remove(struct spi_device *spi) {
+    return pdm_hw_driver_spi_real_remove(spi);
 }
 #else
-static void pdm_device_spi_remove(struct spi_device *spi) {
-    if (pdm_device_spi_real_remove(spi)) {
-        OSA_ERROR("pdm_device_spi_real_remove failed.\n");
+static void pdm_hw_driver_spi_remove(struct spi_device *spi) {
+    if (pdm_hw_driver_spi_real_remove(spi)) {
+        OSA_ERROR("pdm_hw_driver_spi_real_remove failed.\n");
     }
     return;
 }
@@ -89,24 +89,24 @@ static void pdm_device_spi_remove(struct spi_device *spi) {
  *
  * 该表定义了支持的 SPI 设备 ID。
  */
-static const struct spi_device_id pdm_device_spi_ids[] = {
+static const struct spi_device_id pdm_hw_driver_spi_ids[] = {
     { .name = "pdm-device-spi" },
     { }  // 终止符
 };
-MODULE_DEVICE_TABLE(spi, pdm_device_spi_ids);
+MODULE_DEVICE_TABLE(spi, pdm_hw_driver_spi_ids);
 
 /**
  * @brief SPI 驱动结构体
  *
  * 该结构体定义了 SPI 驱动的基本信息和操作函数。
  */
-static struct spi_driver pdm_device_spi_driver = {
-    .probe = pdm_device_spi_probe,
-    .remove = pdm_device_spi_remove,
+static struct spi_driver pdm_hw_driver_spi_driver = {
+    .probe = pdm_hw_driver_spi_probe,
+    .remove = pdm_hw_driver_spi_remove,
     .driver = {
-        .name = "pdm-device-spi",
+        .name = "pdm-hw-driver-spi",
     },
-    .id_table = pdm_device_spi_ids,
+    .id_table = pdm_hw_driver_spi_ids,
 };
 
 /**
@@ -116,15 +116,15 @@ static struct spi_driver pdm_device_spi_driver = {
  *
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_device_spi_driver_init(void) {
+int pdm_hw_driver_spi_init(void) {
     int status;
 
-    status = spi_register_driver(&pdm_device_spi_driver);
+    status = spi_register_driver(&pdm_hw_driver_spi_driver);
     if (status) {
-        OSA_ERROR("Failed to register PDM Device SPI Driver, status=%d.\n", status);
+        OSA_ERROR("Failed to register PDM SPI Hardware Driver, status=%d.\n", status);
         return status;
     }
-    OSA_DEBUG("PDM Device SPI Driver Initialized.\n");
+    OSA_DEBUG("PDM SPI Hardware Driver Initialized.\n");
     return 0;
 }
 
@@ -133,11 +133,11 @@ int pdm_device_spi_driver_init(void) {
  *
  * 该函数用于退出 PDM 设备 SPI 驱动，并将其从系统中注销。
  */
-void pdm_device_spi_driver_exit(void) {
-    spi_unregister_driver(&pdm_device_spi_driver);
-    OSA_DEBUG("PDM Device SPI Driver Exited.\n");
+void pdm_hw_driver_spi_exit(void) {
+    spi_unregister_driver(&pdm_hw_driver_spi_driver);
+    OSA_DEBUG("PDM SPI Hardware Driver Exited.\n");
 }
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("<guohaoprc@163.com>");
-MODULE_DESCRIPTION("PDM Device SPI Driver");
+MODULE_DESCRIPTION("PDM SPI Hardware Driver");

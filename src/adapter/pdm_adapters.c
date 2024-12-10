@@ -7,20 +7,20 @@
  *
  * 该列表用于存储所有注册的 PDM 主驱动程序。
  */
-static struct list_head pdm_adapter_driver_list;
+static struct list_head pdm_adapter_list;
 
 /**
  * @brief PDM 主驱动程序数组
  *
  * 该数组包含所有需要注册的 PDM 主驱动程序。
  */
-static struct pdm_subdriver pdm_adapter_drivers[] = {
+static struct pdm_subdriver pdm_adapters[] = {
     {
         .name = "LED Adapter",
         .status = true,
         .ignore_failures = true,
-        .init = pdm_led_driver_init,
-        .exit = pdm_led_driver_exit,
+        .init = pdm_led_init,
+        .exit = pdm_led_exit,
     },
 };
 
@@ -35,19 +35,19 @@ static struct pdm_subdriver pdm_adapter_drivers[] = {
 int pdm_adapters_register(void)
 {
     int status;
-    struct pdm_subdriver_register_params params;
+    struct pdm_subdriver_data data;
 
-    INIT_LIST_HEAD(&pdm_adapter_driver_list);
-    params.drivers = pdm_adapter_drivers;
-    params.count = ARRAY_SIZE(pdm_adapter_drivers);
-    params.list = &pdm_adapter_driver_list;
-    status = pdm_subdriver_register(&params);
+    INIT_LIST_HEAD(&pdm_adapter_list);
+    data.drivers = pdm_adapters;
+    data.count = ARRAY_SIZE(pdm_adapters);
+    data.list = &pdm_adapter_list;
+    status = pdm_subdriver_register(&data);
     if (status < 0) {
-        OSA_ERROR("Failed to register PDM Adapter Drivers, error: %d.\n", status);
+        OSA_ERROR("Failed to register PDM Adapters, error: %d.\n", status);
         return status;
     }
 
-    OSA_DEBUG("PDM Adapter Drivers Registered OK.\n");
+    OSA_DEBUG("PDM Adapters Registered OK.\n");
     return 0;
 }
 
@@ -58,9 +58,9 @@ int pdm_adapters_register(void)
  */
 void pdm_adapters_unregister(void)
 {
-    pdm_subdriver_unregister(&pdm_adapter_driver_list);
+    pdm_subdriver_unregister(&pdm_adapter_list);
 
-    OSA_DEBUG("PDM Adapter Drivers Unregistered.\n");
+    OSA_DEBUG("PDM Adapters Unregistered.\n");
 }
 
 MODULE_LICENSE("GPL");

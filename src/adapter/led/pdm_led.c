@@ -269,7 +269,7 @@ static struct pdm_driver pdm_led_driver = {
  *
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_led_driver_init(void)
+int pdm_led_init(void)
 {
     int status;
 
@@ -306,7 +306,7 @@ err_adapter_free:
  *
  * 该函数用于退出 LED PDM 主设备驱动，注销驱动和主设备，释放相关资源。
  */
-void pdm_led_driver_exit(void)
+void pdm_led_exit(void)
 {
     pdm_bus_unregister_driver(&pdm_led_driver);
     pdm_adapter_unregister(led_adapter);

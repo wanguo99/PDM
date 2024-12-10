@@ -24,7 +24,7 @@ struct i2c_device_id {
  * @param id I2C 设备 ID
  * @return 成功返回 0，失败返回负错误码
  */
-static int pdm_device_i2c_real_probe(struct i2c_client *client, const struct i2c_device_id *id) {
+static int pdm_hw_driver_i2c_real_probe(struct i2c_client *client, const struct i2c_device_id *id) {
     struct pdm_device *pdmdev;
     int status;
 
@@ -59,7 +59,7 @@ free_pdmdev:
  * @param client I2C 客户端指针
  * @return 成功返回 0，失败返回负错误码
  */
-static int pdm_device_i2c_real_remove(struct i2c_client *client) {
+static int pdm_hw_driver_i2c_real_remove(struct i2c_client *client) {
     struct pdm_device *pdmdev;
 
     pdmdev = pdm_bus_find_device_by_of_node(client->dev.of_node);
@@ -86,12 +86,12 @@ static int pdm_device_i2c_real_remove(struct i2c_client *client) {
  * @return 成功返回 0，失败返回负错误码
  */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 3, 0)
-static int pdm_device_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id) {
-    return pdm_device_i2c_real_probe(client, id);
+static int pdm_hw_driver_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id) {
+    return pdm_hw_driver_i2c_real_probe(client, id);
 }
 #else
-static int pdm_device_i2c_probe(struct i2c_client *client) {
-    return pdm_device_i2c_real_probe(client, NULL);
+static int pdm_hw_driver_i2c_probe(struct i2c_client *client) {
+    return pdm_hw_driver_i2c_real_probe(client, NULL);
 }
 #endif
 
@@ -103,12 +103,12 @@ static int pdm_device_i2c_probe(struct i2c_client *client) {
  * @param client I2C 客户端指针
  */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0)
-static int pdm_device_i2c_remove(struct i2c_client *client) {
-    return pdm_device_i2c_real_remove(client);
+static int pdm_hw_driver_i2c_remove(struct i2c_client *client) {
+    return pdm_hw_driver_i2c_real_remove(client);
 }
 #else
-static void pdm_device_i2c_remove(struct i2c_client *client) {
-    (void)pdm_device_i2c_real_remove(client);
+static void pdm_hw_driver_i2c_remove(struct i2c_client *client) {
+    (void)pdm_hw_driver_i2c_real_remove(client);
 }
 #endif
 
@@ -117,25 +117,25 @@ static void pdm_device_i2c_remove(struct i2c_client *client) {
  *
  * 该表定义了支持的 I2C 设备 ID。
  */
-static const struct i2c_device_id pdm_device_i2c_id[] = {
-    { "pdm-device-i2c", 0 },
+static const struct i2c_device_id pdm_hw_driver_i2c_id[] = {
+    { "pdm-hw-driver-i2c", 0 },
     { }  // 终止符
 };
-MODULE_DEVICE_TABLE(i2c, pdm_device_i2c_id);
+MODULE_DEVICE_TABLE(i2c, pdm_hw_driver_i2c_id);
 
 /**
  * @brief I2C 驱动结构体
  *
  * 该结构体定义了 I2C 驱动的基本信息和操作函数。
  */
-static struct i2c_driver pdm_device_i2c_driver = {
+static struct i2c_driver pdm_hw_driver_i2c_driver = {
     .driver = {
-        .name = "pdm-device-i2c",
+        .name = "pdm-hw-driver-i2c",
         .owner = THIS_MODULE,
     },
-    .probe = pdm_device_i2c_probe,
-    .remove = pdm_device_i2c_remove,
-    .id_table = pdm_device_i2c_id,
+    .probe = pdm_hw_driver_i2c_probe,
+    .remove = pdm_hw_driver_i2c_remove,
+    .id_table = pdm_hw_driver_i2c_id,
 };
 
 /**
@@ -145,15 +145,15 @@ static struct i2c_driver pdm_device_i2c_driver = {
  *
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_device_i2c_driver_init(void) {
+int pdm_hw_driver_i2c_init(void) {
     int status;
 
-    status = i2c_add_driver(&pdm_device_i2c_driver);
+    status = i2c_add_driver(&pdm_hw_driver_i2c_driver);
     if (status) {
-        OSA_ERROR("Failed to register PDM Device I2C Driver, status=%d.\n", status);
+        OSA_ERROR("Failed to register PDM I2C Hardware Driver, status=%d.\n", status);
         return status;
     }
-    OSA_DEBUG("PDM Device I2C Driver Initialized.\n");
+    OSA_DEBUG("PDM I2C Hardware Driver Initialized.\n");
     return 0;
 }
 
@@ -162,11 +162,11 @@ int pdm_device_i2c_driver_init(void) {
  *
  * 该函数用于退出 I2C 驱动，并将其从系统中注销。
  */
-void pdm_device_i2c_driver_exit(void) {
-    i2c_del_driver(&pdm_device_i2c_driver);
-    OSA_DEBUG("PDM Device I2C Driver Exited.\n");
+void pdm_hw_driver_i2c_exit(void) {
+    i2c_del_driver(&pdm_hw_driver_i2c_driver);
+    OSA_DEBUG("PDM I2C Hardware Driver Exited.\n");
 }
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("<guohaoprc@163.com>");
-MODULE_DESCRIPTION("PDM Device I2C Driver.");
+MODULE_DESCRIPTION("PDM I2C Hardware Driver.");

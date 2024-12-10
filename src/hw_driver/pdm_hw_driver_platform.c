@@ -8,7 +8,7 @@
  *
  * 该结构体用于存储 PLATFORM 设备的平台数据。
  */
-struct pdm_device_platform_data {
+struct pdm_hw_driver_platform_data {
     PDM_DEVICE_INTERFACE_TYPE type;  /**< 设备接口类型 */
 };
 
@@ -17,16 +17,16 @@ struct pdm_device_platform_data {
  *
  * 这些变量定义了不同类型的 PLATFORM 设备的平台数据。
  */
-static struct pdm_device_platform_data pdm_device_platform_data_plat = {
+static struct pdm_hw_driver_platform_data pdm_hw_driver_platform_data_plat = {
     .type = PDM_DEVICE_INTERFACE_TYPE_PLATFORM,
 };
-static struct pdm_device_platform_data pdm_device_platform_data_gpio = {
+static struct pdm_hw_driver_platform_data pdm_hw_driver_platform_data_gpio = {
     .type = PDM_DEVICE_INTERFACE_TYPE_GPIO,
 };
-static struct pdm_device_platform_data pdm_device_platform_data_pwm = {
+static struct pdm_hw_driver_platform_data pdm_hw_driver_platform_data_pwm = {
     .type = PDM_DEVICE_INTERFACE_TYPE_PWM,
 };
-static struct pdm_device_platform_data pdm_device_platform_data_tty = {
+static struct pdm_hw_driver_platform_data pdm_hw_driver_platform_data_tty = {
     .type = PDM_DEVICE_INTERFACE_TYPE_TTY,
 };
 
@@ -39,7 +39,7 @@ static struct pdm_device_platform_data pdm_device_platform_data_tty = {
  * @return 返回设备类型
  */
 static int pdm_device_platform_get_dev_type(struct platform_device *pdev) {
-    struct pdm_device_platform_data *pdata;
+    struct pdm_hw_driver_platform_data *pdata;
     int dev_type;
 
     pdata = dev_get_platdata(&pdev->dev);
@@ -66,7 +66,7 @@ static int pdm_device_platform_get_dev_type(struct platform_device *pdev) {
  * @param pdev 指向 PLATFORM 设备的指针
  * @return 成功返回 0，失败返回负错误码
  */
-static int pdm_device_platform_probe(struct platform_device *pdev) {
+static int pdm_hw_driver_platform_probe(struct platform_device *pdev) {
     struct pdm_device *pdmdev;
     int status;
 
@@ -103,7 +103,7 @@ free_pdmdev:
  * @param pdev 指向 PLATFORM 设备的指针
  * @return 成功返回 0，失败返回负错误码
  */
-static int pdm_device_platform_real_remove(struct platform_device *pdev) {
+static int pdm_hw_driver_platform_real_remove(struct platform_device *pdev) {
     struct pdm_device *pdmdev;
 
     pdmdev = pdm_bus_find_device_by_of_node(pdev->dev.of_node);
@@ -128,15 +128,15 @@ static int pdm_device_platform_real_remove(struct platform_device *pdev) {
  * @param pdev PLATFORM 设备指针
  */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 10, 0)
-static int pdm_device_platform_remove(struct platform_device *pdev) {
-    return pdm_device_platform_real_remove(pdev);
+static int pdm_hw_driver_platform_remove(struct platform_device *pdev) {
+    return pdm_hw_driver_platform_real_remove(pdev);
 }
 #else
-static void pdm_device_platform_remove(struct platform_device *pdev) {
+static void pdm_hw_driver_platform_remove(struct platform_device *pdev) {
     int status;
-    status = pdm_device_platform_real_remove(pdev);
+    status = pdm_hw_driver_platform_real_remove(pdev);
     if (status) {
-        OSA_ERROR("pdm_device_platform_real_remove failed.\n");
+        OSA_ERROR("pdm_hw_driver_platform_real_remove failed.\n");
     }
 }
 #endif
@@ -146,40 +146,40 @@ static void pdm_device_platform_remove(struct platform_device *pdev) {
  *
  * 该表定义了支持的 PLATFORM 设备 ID。
  */
-static const struct platform_device_id pdm_device_platform_ids[] = {
-    { .name = "pdm-device-platform", .driver_data = (kernel_ulong_t)&pdm_device_platform_data_plat, },
-    { .name = "pdm-device-gpio", .driver_data = (kernel_ulong_t)&pdm_device_platform_data_gpio, },
-    { .name = "pdm-device-pwm", .driver_data = (kernel_ulong_t)&pdm_device_platform_data_pwm, },
-    { .name = "pdm-device-tty", .driver_data = (kernel_ulong_t)&pdm_device_platform_data_tty, },
+static const struct platform_device_id pdm_hw_driver_platform_ids[] = {
+    { .name = "pdm-device-platform", .driver_data = (kernel_ulong_t)&pdm_hw_driver_platform_data_plat, },
+    { .name = "pdm-device-gpio", .driver_data = (kernel_ulong_t)&pdm_hw_driver_platform_data_gpio, },
+    { .name = "pdm-device-pwm", .driver_data = (kernel_ulong_t)&pdm_hw_driver_platform_data_pwm, },
+    { .name = "pdm-device-tty", .driver_data = (kernel_ulong_t)&pdm_hw_driver_platform_data_tty, },
     { },  // 终止符
 };
-MODULE_DEVICE_TABLE(platform, pdm_device_platform_ids);
+MODULE_DEVICE_TABLE(platform, pdm_hw_driver_platform_ids);
 
 /**
  * @brief DEVICE_TREE 匹配表
  *
  * 该表定义了支持的 DEVICE_TREE 兼容性字符串。
  */
-static const struct of_device_id pdm_device_platform_of_match[] = {
+static const struct of_device_id pdm_hw_driver_platform_of_match[] = {
     { .compatible = "led,pdm-device-gpio" },
     { .compatible = "led,pdm-device-pwm" },
     { },  // 终止符
 };
-MODULE_DEVICE_TABLE(of, pdm_device_platform_of_match);
+MODULE_DEVICE_TABLE(of, pdm_hw_driver_platform_of_match);
 
 /**
  * @brief PLATFORM 驱动结构体
  *
  * 该结构体定义了 PLATFORM 驱动的基本信息和操作函数。
  */
-static struct platform_driver pdm_device_platform_driver = {
-    .probe = pdm_device_platform_probe,
-    .remove = pdm_device_platform_remove,
+static struct platform_driver pdm_hw_driver_platform_driver = {
+    .probe = pdm_hw_driver_platform_probe,
+    .remove = pdm_hw_driver_platform_remove,
     .driver = {
-        .name = "pdm-device-platform",
-        .of_match_table = pdm_device_platform_of_match,
+        .name = "pdm-hw-driver-platform",
+        .of_match_table = pdm_hw_driver_platform_of_match,
     },
-    .id_table = pdm_device_platform_ids,
+    .id_table = pdm_hw_driver_platform_ids,
 };
 
 /**
@@ -189,15 +189,15 @@ static struct platform_driver pdm_device_platform_driver = {
  *
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_device_platform_driver_init(void) {
+int pdm_hw_driver_platform_init(void) {
     int status;
 
-    status = platform_driver_register(&pdm_device_platform_driver);
+    status = platform_driver_register(&pdm_hw_driver_platform_driver);
     if (status) {
-        OSA_ERROR("Failed to register PDM Device PLATFORM Driver, status=%d.\n", status);
+        OSA_ERROR("Failed to register PDM PLATFORM Hardware Driver, status=%d.\n", status);
         return status;
     }
-    OSA_DEBUG("PDM Device PLATFORM Driver Initialized.\n");
+    OSA_DEBUG("PDM PLATFORM Hardware Driver Initialized.\n");
     return 0;
 }
 
@@ -206,11 +206,11 @@ int pdm_device_platform_driver_init(void) {
  *
  * 该函数用于退出 PLATFORM 驱动，并将其从系统中注销。
  */
-void pdm_device_platform_driver_exit(void) {
-    platform_driver_unregister(&pdm_device_platform_driver);
-    OSA_DEBUG("PDM Device PLATFORM Driver Exited.\n");
+void pdm_hw_driver_platform_exit(void) {
+    platform_driver_unregister(&pdm_hw_driver_platform_driver);
+    OSA_DEBUG("PDM PLATFORM Hardware Driver Exited.\n");
 }
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("<guohaoprc@163.com>");
-MODULE_DESCRIPTION("PDM Device PLATFORM Driver");
+MODULE_DESCRIPTION("PDM PLATFORM Hardware Driver");

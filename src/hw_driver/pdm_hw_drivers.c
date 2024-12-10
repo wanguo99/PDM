@@ -12,34 +12,34 @@
  *
  * 该列表用于存储所有注册的 PDM 主模板驱动程序。
  */
-static struct list_head pdm_device_driver_list;
+static struct list_head pdm_hw_driver_list;
 
 /**
  * @brief PDM 主模板驱动程序数组
  *
  * 该数组包含所有需要注册的 PDM 主模板驱动程序。每个 `pdm_subdriver` 结构体包含驱动程序的名称、初始化函数和退出函数。
  */
-static struct pdm_subdriver pdm_device_drivers[] = {
+static struct pdm_subdriver pdm_hw_drivers[] = {
     {
-        .name = "PDM SPI Device",
+        .name = "PDM Hardware Driver: SPI",
         .status = true,
         .ignore_failures = true,
-        .init = pdm_device_spi_driver_init,
-        .exit = pdm_device_spi_driver_exit
+        .init = pdm_hw_driver_spi_init,
+        .exit = pdm_hw_driver_spi_exit
     },
     {
-        .name = "PDM I2C Device",
+        .name = "PDM Hardware Driver: I2C",
         .status = true,
         .ignore_failures = true,
-        .init = pdm_device_i2c_driver_init,
-        .exit = pdm_device_i2c_driver_exit
+        .init = pdm_hw_driver_i2c_init,
+        .exit = pdm_hw_driver_i2c_exit
     },
     {
-        .name = "PDM PLATFORM Device",
+        .name = "PDM Hardware Driver: PLATFORM",
         .status = true,
         .ignore_failures = true,
-        .init = pdm_device_platform_driver_init,
-        .exit = pdm_device_platform_driver_exit
+        .init = pdm_hw_driver_platform_init,
+        .exit = pdm_hw_driver_platform_exit
     },
 };
 
@@ -55,21 +55,21 @@ static struct pdm_subdriver pdm_device_drivers[] = {
  */
 int pdm_hw_drivers_register(void)
 {
-    struct pdm_subdriver_register_params params;
+    struct pdm_subdriver_data data;
     int status;
 
-    INIT_LIST_HEAD(&pdm_device_driver_list);
+    INIT_LIST_HEAD(&pdm_hw_driver_list);
 
-    params.drivers = pdm_device_drivers;
-    params.count = ARRAY_SIZE(pdm_device_drivers);
-    params.list = &pdm_device_driver_list;
-    status = pdm_subdriver_register(&params);
+    data.drivers = pdm_hw_drivers;
+    data.count = ARRAY_SIZE(pdm_hw_drivers);
+    data.list = &pdm_hw_driver_list;
+    status = pdm_subdriver_register(&data);
     if (status < 0) {
-        OSA_ERROR("Failed to register PDM Device Drivers, error: %d.\n", status);
+        OSA_ERROR("Failed to register PDM Hardware Drivers, error: %d.\n", status);
         return status;
     }
 
-    OSA_DEBUG("Initialize PDM Device Drivers OK.\n");
+    OSA_DEBUG("Initialize PDM Hardware Drivers OK.\n");
     return 0;
 }
 
@@ -84,10 +84,10 @@ int pdm_hw_drivers_register(void)
  */
 void pdm_hw_drivers_unregister(void)
 {
-    pdm_subdriver_unregister(&pdm_device_driver_list);
-    OSA_DEBUG("PDM Device Drivers Exited.\n");
+    pdm_subdriver_unregister(&pdm_hw_driver_list);
+    OSA_DEBUG("PDM Hardware Drivers Exited.\n");
 }
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("<guohaoprc@163.com>");
-MODULE_DESCRIPTION("PDM Device Drivers");
+MODULE_DESCRIPTION("PDM Hardware Drivers");

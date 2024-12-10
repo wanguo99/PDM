@@ -72,20 +72,20 @@ void pdm_subdriver_unregister(struct list_head *list) {
  * @param params 子驱动注册参数结构体指针
  * @return 成功返回 0，失败返回负错误码
  */
-int pdm_subdriver_register(struct pdm_subdriver_register_params *params) {
+int pdm_subdriver_register(struct pdm_subdriver_data *data) {
     int i, status = 0;
 
-    if (!params || !params->drivers || params->count <= 0 || !params->list) {
+    if (!data || !data->drivers || data->count <= 0 || !data->list) {
         OSA_ERROR("Invalid input parameters.\n");
         return -EINVAL;
     }
 
-    for (i = 0; i < params->count; i++) {
-        status = pdm_subdriver_register_single(&params->drivers[i], params->list);
+    for (i = 0; i < data->count; i++) {
+        status = pdm_subdriver_register_single(&data->drivers[i], data->list);
         if (status) {
             OSA_ERROR("Failed to register driver %s at index %d, status = %d.\n",
-                      params->drivers[i].name ? params->drivers[i].name : "Unknown", i, status);
-            pdm_subdriver_unregister(params->list);
+                      data->drivers[i].name ? data->drivers[i].name : "Unknown", i, status);
+            pdm_subdriver_unregister(data->list);
             return status;
 
         }
